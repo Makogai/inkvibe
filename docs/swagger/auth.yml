@@ -244,8 +244,6 @@
                   type: string
                   example: 'E002'
 
-
-auth/me:
   put:
     tags:
       - Auth
@@ -255,7 +253,7 @@ auth/me:
       A valid bearer token is required to access this endpoint.
     operationId: updateCurrentUser
     security:
-      - bearerAuth: []
+      - bearerAuth: [ ]
     requestBody:
       required: true
       content:

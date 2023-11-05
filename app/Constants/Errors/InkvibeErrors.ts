@@ -1,0 +1,5 @@
+export enum InkvibeErrors {
+  INVALID_CREDENTIALS = 'E001',
+  USER_NOT_FOUND = 'E002',
+  CAN_ONLY_DELETE_OWN_STORY = 'E003',
+}

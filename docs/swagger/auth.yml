@@ -1,21 +1,320 @@
-/api/auth/login:
+/auth/login:
   post:
     tags:
       - Auth
+    summary: 'User Login'
+    description: |
+      This endpoint allows users to log in by providing either their email or username along with their password.
+    operationId: loginUser
     security: []
-    description: Login
     parameters:
-      - name: credentials
-        in:  body
+      - name: uid
+        in: query
+        description: The user's email or username
         required: true
         schema:
-          properties:
-            phone:
-              type: string
-              example: '1234567890'
-              required: true
-    produces:
-      - application/json
+          type: string
+          example: 'john.doe@example.com or johndoe'
+      - name: password
+        in: query
+        description: The user's password
+        required: true
+        schema:
+          type: string
+          example: 'password123'
     responses:
       200:
-        description: Success
+        description: Login Successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: object
+                  description: The JWT token for the authenticated session.
+                  properties:
+                    type:
+                      type: string
+                      example: 'Bearer'
+                    token:
+                      type: string
+                      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                user:
+                  type: object
+                  description: The authenticated user's details.
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    username:
+                      type: string
+                      example: 'johndoe'
+                    email:
+                      type: string
+                      example: 'john.doe@example.com'
+                    profile_picture:
+                      type: string
+                      example: 'https://example.com/profile_picture.png'
+                    created_at:
+                      type: string
+                      example: '2021-01-01T00:00:00.000Z'
+                    updated_at:
+                      type: string
+                      example: '2021-01-01T00:00:00.000Z'
+                    remember_me_token:
+                      type: boolean
+                      example: false
+      401:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: 'Invalid credentials'
+                code:
+                  type: string
+                  example: 'E001'
+
+
+
+/auth/register:
+  post:
+    tags:
+      - Auth
+    summary: 'User Registration'
+    description: |
+      This endpoint allows users to create a new account by providing their username, email, password, and an optional profile picture.
+    operationId: registerUser
+    security: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: The username for the new user
+                example: 'johndoe'
+              email:
+                type: string
+                description: The email address for the new user
+                example: 'john.doe@example.com'
+              password:
+                type: string
+                description: The password for the new user
+                example: 'password123'
+              profile_picture:
+                type: string
+                format: binary
+                description: An optional profile picture file for the new user
+    responses:
+      200:
+        description: Registration Successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: object
+                  description: The JWT token for the authenticated session.
+                  properties:
+                    type:
+                      type: string
+                      example: 'Bearer'
+                    token:
+                      type: string
+                      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                user:
+                  type: object
+                  description: The registered user's details.
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    username:
+                      type: string
+                      example: 'johndoe'
+                    email:
+                      type: string
+                      example: 'john.doe@example.com'
+                    profile_picture:
+                      type: string
+                      example: 'https://example.com/profile_picture.png'
+                    created_at:
+                      type: string
+                      example: '2021-01-01T00:00:00.000Z'
+                    updated_at:
+                      type: string
+                      example: '2021-01-01T00:00:00.000Z'
+                    remember_me_token:
+                      type: boolean
+                      example: false
+      400:
+        description: Bad Request
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: 'Validation error'
+                errors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'The email field is required'
+                      field:
+                        type: string
+                        example: 'email'
+                      validation:
+                        type: string
+                        example: 'required'
+
+
+/auth/me:
+  get:
+    tags:
+      - Auth
+    summary: 'Get Current User Details'
+    description: |
+      This endpoint returns the authenticated user's details.
+      A valid bearer token is required to access this endpoint.
+    operationId: getCurrentUser
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Request Successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  description: The user's ID
+                  example: 2
+                email:
+                  type: string
+                  description: The user's email address
+                  example: 'ma@re.mee'
+                username:
+                  type: string
+                  description: The user's username
+                  example: 'makogai1'
+                remember_me_token:
+                  type: string
+                  nullable: true
+                  description: The remember me token, if set
+                  example: null
+                profile_picture:
+                  type: string
+                  description: The URL to the user's profile picture
+                  example: 'http://127.0.0.1:3333/uploads/images/1699195496013.png'
+                created_at:
+                  type: string
+                  description: The date and time the user account was created
+                  example: '2023-11-05T15:42:50.000+01:00'
+                updated_at:
+                  type: string
+                  description: The date and time the user account was last updated
+                  example: '2023-11-05T15:44:56.000+01:00'
+      401:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: 'Invalid token'
+                code:
+                  type: string
+                  example: 'E002'
+
+
+auth/me:
+  put:
+    tags:
+      - Auth
+    summary: 'Update Current User Profile'
+    description: |
+      This endpoint allows the authenticated user to update their profile details.
+      A valid bearer token is required to access this endpoint.
+    operationId: updateCurrentUser
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: The new username for the user
+                example: 'newusername'
+              email:
+                type: string
+                description: The new email address for the user
+                example: 'new.email@example.com'
+              profile_picture:
+                type: string
+                format: binary
+                description: A new profile picture file for the user
+    responses:
+      200:
+        description: Update Successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 2
+                email:
+                  type: string
+                  example: 'new.email@example.com'
+                username:
+                  type: string
+                  example: 'newusername'
+                remember_me_token:
+                  type: string
+                  nullable: true
+                  example: null
+                profile_picture:
+                  type: string
+                  example: 'http://127.0.0.1:3333/uploads/images/new_picture.png'
+                created_at:
+                  type: string
+                  example: '2023-11-05T15:42:50.000+01:00'
+                updated_at:
+                  type: string
+                  example: '2023-11-05T16:44:56.000+01:00'
+      401:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: 'Invalid token'
+                code:
+                  type: string
+                  example: 'E002'

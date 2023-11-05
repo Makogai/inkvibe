@@ -12,10 +12,19 @@ export default {
 		definition: {
 			openapi: '3.0.0',
 			info: {
-				title: 'Application with swagger docs',
+				title: 'Inkvibe API',
 				version: '1.0.0',
-				description: 'My application with swagger docs'
-			}
+				description: 'Inkvibe Backend endpoint documentation'
+			},
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT"
+          }
+        }
+      },
 		},
 
 		apis: [

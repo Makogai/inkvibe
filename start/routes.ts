@@ -35,7 +35,15 @@ Route.group(() => {
 
 Route.group(() => {
   Route.get('/', 'StoriesController.index')
+  Route.get('/user/:id', 'StoriesController.userStories')
   Route.post('/', 'StoriesController.store')
   Route.delete('/:id', 'StoriesController.destroy')
 }).prefix('/stories').middleware('auth')
 
+Route.group(() => {
+  Route.get('/posts', 'PostsController.index')
+  Route.post('/posts', 'PostsController.store')
+  Route.get('/posts/:id', 'PostsController.show')
+  Route.patch('/posts/:id', 'PostsController.update')
+  Route.delete('/posts/:id', 'PostsController.destroy')
+}).middleware('auth') // Assuming you have authentication and want these routes protected.

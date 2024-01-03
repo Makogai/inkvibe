@@ -5,6 +5,7 @@ import Story from 'App/Models/Story'
 import StoryValidator from 'App/Validators/StoryValidator'
 import FileUploadService from 'App/Services/FileUploadService'
 import { InkvibeErrors } from 'App/Constants/Errors/InkvibeErrors'
+import User from 'App/Models/User'
 
 export default class StoriesController {
   public async index({ auth, response }: HttpContextContract) {
@@ -28,6 +29,21 @@ export default class StoriesController {
     } catch (error) {
       console.error(error);
       return response.internalServerError({ message: 'Could not fetch stories' });
+    }
+  }
+
+  public async userStories({ params, response}) {
+    try {
+      const user = await User.findOrFail(params.id);
+      const stories = await user.related('stories')
+        .query()
+        .apply((scopes) => scopes.activeStories())
+        .preload('user');
+
+      return response.ok(stories);
+
+    }catch {
+      return response.notFound({ message: 'User not found' });
     }
   }
 

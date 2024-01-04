@@ -19,18 +19,17 @@ export default class StoriesController {
       const myStories = allActiveStories.filter(story => story.userId === user.id);
       const otherStories = allActiveStories.filter(story => story.userId !== user.id);
 
-      // Combine into a single response object
-      const result = {
-        myStories: myStories,
-        allActiveStories: otherStories,
-      };
+      // Combine your stories with the rest, your stories first
+      const combinedStories = [...myStories, ...otherStories];
 
-      return response.ok(result);
+      return response.ok(combinedStories);
     } catch (error) {
       console.error(error);
       return response.internalServerError({ message: 'Could not fetch stories' });
     }
   }
+
+
 
   public async userStories({ params, response}) {
     try {

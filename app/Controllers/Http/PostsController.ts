@@ -64,7 +64,7 @@ export default class PostsController {
       }
 
       const data = await request.validate(PostValidator);
-      post.content = data.content;
+      post.content = data.content ?? "";
 
       // Handle file upload
       if (data.media) {

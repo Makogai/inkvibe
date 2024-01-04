@@ -10,7 +10,7 @@ export default class Post extends BaseModel {
   public userId: number
 
   @column()
-  public content: string
+  public content: string | null
 
   @column()
   public mediaUrl: string | null

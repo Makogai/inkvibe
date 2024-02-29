@@ -6,6 +6,7 @@ import Story from 'App/Models/Story'
 export default class User extends BaseModel {
   @column({ isPrimary: true })
   public id: number
+  // issue 1
 
   @column()
   public username: string;

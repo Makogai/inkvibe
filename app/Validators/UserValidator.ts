@@ -21,6 +21,7 @@ export default class UserValidator {
 
   public static updateSchema = schema.create({
     username: schema.string.optional({ trim: true }, [
+      // @ts-ignore
       rules.uniqueExceptSelf({ table: 'users', column: 'username' }),
     ]),
     email: schema.string.optional({ trim: true }, [
@@ -30,6 +31,7 @@ export default class UserValidator {
     name: schema.string.optional({ trim: true }),
     bio: schema.string.optional({ trim: true }),
     gender: schema.number.optional([
+      // @ts-ignore
       rules.enum([1, 2]) // 1 - male 2- female
 
     ]),

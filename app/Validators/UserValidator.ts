@@ -1,7 +1,6 @@
 // File: app/Validators/UserValidator.ts
 
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
-import { message } from 'memfs/lib/internal/errors'
 
 export default class UserValidator {
   public static createSchema = schema.create({

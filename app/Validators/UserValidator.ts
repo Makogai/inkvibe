@@ -1,6 +1,7 @@
 // File: app/Validators/UserValidator.ts
 
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
+import { message } from 'memfs/lib/internal/errors'
 
 export default class UserValidator {
   public static createSchema = schema.create({
@@ -25,6 +26,12 @@ export default class UserValidator {
     email: schema.string.optional({ trim: true }, [
       rules.email(),
       rules.unique({ table: 'users', column: 'email', caseInsensitive: true }),
+    ]),
+    name: schema.string.optional({ trim: true }),
+    bio: schema.string.optional({ trim: true }),
+    gender: schema.number.optional([
+      rules.enum([1, 2]) // 1 - male 2- female
+
     ]),
     profile_picture: schema.file.optional({
       size: '2mb',

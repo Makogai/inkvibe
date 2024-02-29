@@ -17,34 +17,58 @@ interface ValidatedUpdateData {
   username?: string;
   email?: string;
   profile_picture?: string | null;  // Now it can be string or null
-  // ... any other fields
+  bio?: string;
+  name?: string;
+  gender?: number;
 }
 
 export default class AuthController {
-  public async register({request, response, auth}: HttpContextContract){
-    const validatedData = await request.validate({schema: UserValidator.createSchema, messages: {
-      'username.unique': 'Username already exists',
-      'email.unique': 'Email already exists',
-      'password.minLength': 'Password must be at least 8 characters long',
-      }});
+  public async register({ request, response, auth }: HttpContextContract) {
+    const validatedData = await request.validate({
+      schema: UserValidator.createSchema,
+      messages: {
+        'username.unique': 'Username already exists',
+        'email.unique': 'Email already exists',
+        'password.minLength': 'Password must be at least 8 characters long',
+        // Add validation messages for bio, gender, and name if necessary
+      }
+    });
+
     const avatar = validatedData['profile_picture'];
 
+    // Prepare the data including bio, gender, and name
     const data: UserData = {
       ...validatedData,
-      profile_picture: null  // Initialize with null, will be updated below if avatar exists
+      profile_picture: null // Initialize with null, will be updated below if avatar exists
     };
 
     if (avatar) {
       data.profile_picture = await FileUploadService.uploadFile(avatar, 'images');
     }
 
+    // Create the user with all fields
     const user = await User.create(data);
 
-    const token = await auth.attempt(data.email, data.password);
+    // Authenticate the user immediately after registration
+    const token = await auth.use('api').generate(user);
 
-    // Return user object and token
-    return response.created({token: token, user})
+    // Optional: If you need to return related models like stories, preload them here
+    // await user.load('stories');
+
+    // Return the complete user object and token
+    return response.created({
+      token: {
+        type: token.type,
+        token: token.token,
+      },
+      user: user.serialize({
+        fields: {
+          omit: ['password'] // Ensure password is not included in the response
+        }
+      })
+    });
   }
+
 
   public async login({request, response, auth}: HttpContextContract){
     const userSchema = schema.create({
@@ -54,23 +78,33 @@ export default class AuthController {
 
     const data = await request.validate({schema: userSchema})
 
-    let token = null;
-
     try {
-      token = await auth.attempt(data.uid, data.password);
-    }catch (error){
+      // Attempt to authenticate the user
+      await auth.attempt(data.uid, data.password);
+
+      // Now fetch the user with additional fields
+      // Assuming `uid` can be either username or email, adjust your query accordingly
+      const user = await User.query()
+        .where('email', data.uid)
+        .orWhere('username', data.uid)
+        .preload('stories') // if you also want to load related stories
+        .firstOrFail();
+      const token = await auth.use('api').generate(user);
+
+      // Return user object with token and additional fields
+      return response.ok({
+        token: token,
+        user: user.toJSON() // This will include the additional fields
+      });
+    } catch (error) {
       throw {
         code: InkvibeErrors.INVALID_CREDENTIALS,
         message: 'Invalid credentials',
         status: 400
       }
     }
-
-
-    // Return user object and token
-    // @ts-ignore
-    return response.ok({token: token, user: token.user})
   }
+
 
   public async me({auth, response}: HttpContextContract){
     const user = await auth.authenticate()
@@ -94,6 +128,9 @@ export default class AuthController {
     // If username or email is provided, add them to updateData
     if (validatedData.username) updateData.username = validatedData.username;
     if (validatedData.email) updateData.email = validatedData.email;
+    if (validatedData.name) updateData.name = validatedData.name;
+    if (validatedData.bio) updateData.bio = validatedData.bio;
+    if (validatedData.gender) updateData.gender = validatedData.gender
 
     user.merge(updateData);
     await user.save();

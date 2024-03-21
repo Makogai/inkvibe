@@ -25,7 +25,8 @@ export default class Index {
   public register() {
     // Register your own bindings
     this.app.container.singleton('Firebase/Admin', () => {
-      return new (require('./firebase-admin').default)
+      const { firebaseConfig } = this.app.config.get('firebase')
+      return new (require('./firebase-admin').default)(firebaseConfig)
     })
   }
 

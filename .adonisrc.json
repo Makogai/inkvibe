@@ -29,7 +29,8 @@
     "@adonisjs/core",
     "@adonisjs/lucid",
     "@adonisjs/auth",
-    "adonis5-swagger"
+    "adonis5-swagger",
+    "./providers/FirebaseProvider"
   ],
   "aceProviders": [
     "@adonisjs/repl"

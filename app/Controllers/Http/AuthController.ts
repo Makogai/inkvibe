@@ -4,6 +4,9 @@ import User from 'App/Models/User'
 import UserValidator from 'App/Validators/UserValidator'
 import { InkvibeErrors } from 'App/Constants/Errors/InkvibeErrors'
 import FileUploadService from 'App/Services/FileUploadService'
+// import FirebaseAdmin
+import { logger } from '@poppinss/cliui'
+import FirebaseAdmin from '@ioc:Firebase/Admin'
 
 interface UserData {
   username: string;
@@ -24,6 +27,7 @@ interface ValidatedUpdateData {
 
 export default class AuthController {
   public async register({ request, response, auth }: HttpContextContract) {
+    logger.info('this is an info message')
     const validatedData = await request.validate({
       schema: UserValidator.createSchema,
       messages: {
@@ -48,22 +52,21 @@ export default class AuthController {
 
     // Create the user with all fields
     const user = await User.create(data);
-
-    // Authenticate the user immediately after registration
     const token = await auth.use('api').generate(user);
 
-    // Optional: If you need to return related models like stories, preload them here
-    // await user.load('stories');
+    // Generate a Firebase custom token
+    const firebaseToken = await FirebaseAdmin.admin.auth().createCustomToken(user.id.toString());
 
-    // Return the complete user object and token
+    // Your existing response logic, now including firebaseToken ...
     return response.created({
       token: {
         type: token.type,
         token: token.token,
       },
+      firebaseToken, // Add the Firebase token here
       user: user.serialize({
         fields: {
-          omit: ['password'] // Ensure password is not included in the response
+          omit: ['password']
         }
       })
     });
@@ -79,22 +82,19 @@ export default class AuthController {
     const data = await request.validate({schema: userSchema})
 
     try {
-      // Attempt to authenticate the user
-      await auth.attempt(data.uid, data.password);
-
-      // Now fetch the user with additional fields
-      // Assuming `uid` can be either username or email, adjust your query accordingly
       const user = await User.query()
         .where('email', data.uid)
         .orWhere('username', data.uid)
-        .preload('stories') // if you also want to load related stories
         .firstOrFail();
       const token = await auth.use('api').generate(user);
 
-      // Return user object with token and additional fields
+      // Generate a Firebase custom token
+      const firebaseToken = await FirebaseAdmin.admin.auth().createCustomToken(user.id.toString());
+
       return response.ok({
         token: token,
-        user: user.toJSON() // This will include the additional fields
+        firebaseToken, // Include the Firebase token in the response
+        user: user.toJSON()
       });
     } catch (error) {
       throw {

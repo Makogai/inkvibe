@@ -135,6 +135,13 @@ export const http: ServerConfig = {
 |--------------------------------------------------------------------------
 */
 export const logger: LoggerConfig = {
+  console: {
+    driver: 'console'
+  },
+  file: {
+    driver: 'file',
+    filename: 'adonis.log'
+  },
   /*
   |--------------------------------------------------------------------------
   | Application name

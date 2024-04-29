@@ -106,10 +106,31 @@ export default class AuthController {
   }
 
 
-  public async me({auth, response}: HttpContextContract){
-    const user = await auth.authenticate()
-    return response.ok(user)
+  // File: app/Controllers/Http/AuthController.ts
+
+  public async me({ auth, response }: HttpContextContract) {
+    const user = await auth.authenticate();
+
+    // Manually resolve computed properties
+    const followersCount = await user.followersCount;
+    const followingsCount = await user.followingsCount;
+
+    // Serialize the user object
+    const userData = user.serialize({
+      fields: {
+        omit: ['password'],
+        pick: ['id', 'username', 'email', 'profilePicture', 'bio', 'name', 'gender']
+      }
+    });
+
+    // Include counts in the response
+    userData['followersCount'] = followersCount;
+    userData['followingsCount'] = followingsCount;
+
+    return response.ok(userData);
   }
+
+
 
   // Update user profile
   public async update({ request, response, auth }: HttpContextContract) {

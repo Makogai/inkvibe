@@ -47,3 +47,16 @@ Route.group(() => {
   Route.patch('/posts/:id', 'PostsController.update')
   Route.delete('/posts/:id', 'PostsController.destroy')
 }).middleware('auth') // Assuming you have authentication and want these routes protected.
+
+Route.group(() => {
+  Route.post('/follow', 'FollowsController.sendRequest').middleware('auth')
+  Route.post('/follow/accept', 'FollowsController.acceptRequest').middleware('auth')
+  Route.post('/follow/unfollow', 'FollowsController.unfollow').middleware('auth')
+  Route.get('/follow/requests', 'FollowsController.index').middleware('auth')
+  Route.get('/followers', 'FollowsController.followers').middleware('auth')
+  Route.get('/following', 'FollowsController.followings').middleware('auth')
+
+}).prefix('/social')
+
+Route.get('/users/search', 'UsersController.search').middleware('auth')
+Route.get('/users/:id', 'UsersController.show').middleware('auth')

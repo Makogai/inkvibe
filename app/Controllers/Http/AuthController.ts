@@ -119,7 +119,7 @@ export default class AuthController {
     const userData = user.serialize({
       fields: {
         omit: ['password'],
-        pick: ['id', 'username', 'email', 'profilePicture', 'bio', 'name', 'gender']
+        // pick: ['id', 'username', 'email', 'profilePicture', 'bio', 'name', 'gender']
       }
     });
 

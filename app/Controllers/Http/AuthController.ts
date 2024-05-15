@@ -133,6 +133,7 @@ export default class AuthController {
 
 
   // Update user profile
+  // Update user profile
   public async update({ request, response, auth }: HttpContextContract) {
     const user = await auth.authenticate();
 
@@ -142,21 +143,32 @@ export default class AuthController {
     // Create a new object to hold the data to be merged
     const updateData: ValidatedUpdateData = {};
 
+    // Upload new profile picture if provided
     if (avatar) {
       updateData.profile_picture = await FileUploadService.uploadFile(avatar, 'images');
     }
 
-    // If username or email is provided, add them to updateData
-    if (validatedData.username) updateData.username = validatedData.username;
-    if (validatedData.email) updateData.email = validatedData.email;
+    // Update username only if it has changed
+    if (validatedData.username && validatedData.username !== user.username) {
+      updateData.username = validatedData.username;
+    }
+
+    // Similarly, update email only if it has changed
+    if (validatedData.email && validatedData.email !== user.email) {
+      updateData.email = validatedData.email;
+    }
+
+    // Other fields can be updated without checks unless specific logic is required
     if (validatedData.name) updateData.name = validatedData.name;
     if (validatedData.bio) updateData.bio = validatedData.bio;
-    if (validatedData.gender) updateData.gender = validatedData.gender
+    if (validatedData.gender) updateData.gender = validatedData.gender;
 
+    // Merge and save the updated data
     user.merge(updateData);
     await user.save();
 
     return response.ok(user);
   }
+
 
 }

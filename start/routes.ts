@@ -51,6 +51,7 @@ Route.group(() => {
 Route.group(() => {
   Route.post('/follow', 'FollowsController.sendRequest').middleware('auth')
   Route.post('/follow/accept', 'FollowsController.acceptRequest').middleware('auth')
+  Route.post('/follow/decline', 'FollowsController.declineRequest').middleware('auth')
   Route.post('/follow/unfollow', 'FollowsController.unfollow').middleware('auth')
   Route.get('/follow/requests', 'FollowsController.index').middleware('auth')
   Route.get('/followers', 'FollowsController.followers').middleware('auth')

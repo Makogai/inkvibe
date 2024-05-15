@@ -69,6 +69,17 @@ export default class FollowsController {
     }
   }
 
+  public async declineRequest({ auth, request }: HttpContextContract) {
+    const requestId = request.input('request_id')
+    const followRequest = await Follow.findOrFail(requestId)
+    if (followRequest.following_id === auth.user!.id) {
+      await followRequest.delete()
+    }
+    return {
+      message: 'Follow request accepted successfully.'
+    }
+  }
+
   public async unfollow({ auth, request }: HttpContextContract) {
     const userToUnfollowId = request.input('user_id')
     const user = auth.user!

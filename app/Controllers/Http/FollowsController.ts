@@ -2,6 +2,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 // import User from 'App/Models/User'
 import Follow from 'App/Models/Follow'
 import FollowsValidator from 'App/Validators/FollowsValidator'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
 
 export default class FollowsController {
 
@@ -76,17 +77,69 @@ export default class FollowsController {
       await followRequest.delete()
     }
     return {
-      message: 'Follow request accepted successfully.'
+      message: 'Follow request declined successfully.'
     }
   }
 
-  public async unfollow({ auth, request }: HttpContextContract) {
-    const userToUnfollowId = request.input('user_id')
+  public async unfollow({ auth, request, response }: HttpContextContract) {
     const user = auth.user!
+
+    // Inline validation for user_id
+    const userIdSchema = schema.create({
+      user_id: schema.number([rules.exists({ table: 'users', column: 'id' })])
+    })
+
+    const { user_id: userToUnfollowId } = await request.validate({
+      schema: userIdSchema,
+      messages: {
+        'user_id.required': 'The user_id field is required.',
+        'user_id.exists': 'The user you are trying to unfollow does not exist.',
+      }
+    })
+
+    // Check if the user is followed by our user
     const follow = await Follow.query()
       .where('follower_id', user.id)
       .andWhere('following_id', userToUnfollowId)
-      .firstOrFail()
+      .first()
+
+    if (!follow) {
+      return response.badRequest({ message: 'You are not following this user.' })
+    }
+
     await follow.delete()
+
+    return response.ok({ message: 'Unfollowed successfully.' })
+  }
+
+  public async removeFollower({ auth, request, response }: HttpContextContract) {
+    const user = auth.user!
+
+    // Inline validation for user_id
+    const userIdSchema = schema.create({
+      user_id: schema.number([rules.exists({ table: 'users', column: 'id' })])
+    })
+
+    const { user_id: followerId } = await request.validate({
+      schema: userIdSchema,
+      messages: {
+        'user_id.required': 'The user_id field is required.',
+        'user_id.exists': 'The user you are trying to remove does not exist.',
+      }
+    })
+
+    // Check if the user is followed by the authenticated user
+    const follow = await Follow.query()
+      .where('follower_id', followerId)
+      .andWhere('following_id', user.id)
+      .first()
+
+    if (!follow) {
+      return response.badRequest({ message: 'This user is not following you.' })
+    }
+
+    await follow.delete()
+
+    return response.ok({ message: 'Removed follower successfully.' })
   }
 }
